@@ -342,7 +342,7 @@ std::pair<double, double> TrojanMap::GetPlotLocation(double lat, double lon) {
  * @param  {std::string} id : location id
  * @return {double}         : latitude
  */
-double TrojanMap::GetLat(std::string id) { return 0; }
+double TrojanMap::GetLat(std::string id) { return data[id].lat; }
 
 /**
  * GetLon: Get the longitude of a Node given its id. 
@@ -350,7 +350,7 @@ double TrojanMap::GetLat(std::string id) { return 0; }
  * @param  {std::string} id : location id
  * @return {double}         : longitude
  */
-double TrojanMap::GetLon(std::string id) { return 0; }
+double TrojanMap::GetLon(std::string id) { return data[id].lon; }
 
 /**
  * GetName: Get the name of a Node given its id.
@@ -358,7 +358,7 @@ double TrojanMap::GetLon(std::string id) { return 0; }
  * @param  {std::string} id : location id
  * @return {std::string}    : name
  */
-std::string TrojanMap::GetName(std::string id) { return ""; }
+std::string TrojanMap::GetName(std::string id) { return data[id].name; }
 
 /**
  * GetNeighborIDs: Get the neighbor ids of a Node.
@@ -368,6 +368,7 @@ std::string TrojanMap::GetName(std::string id) { return ""; }
  */
 std::vector<std::string> TrojanMap::GetNeighborIDs(std::string id) {
     std::vector<std::string> result;
+    result = data[id].neighbors;
     return result;
 }
 
@@ -383,13 +384,15 @@ double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
   // TODO: Use Haversine Formula:
   // dlon = lon2 - lon1;
   // dlat = lat2 - lat1;
-  // a = (sin(dlat / 2)) ^ 2 + cos(lat1) * cos(lat2) * (sin(dlon / 2)) ^ 2;
-  // c = 2 * arcsin(min(1, sqrt(a)));
-  // distances = 3961 * c;
+  double dlon = b.lon - a.lon;
+  double dlat = b.lat - a.lat;
+  double r = (sin(dlat / 2)) ^ 2 + cos(a.lat) * cos(b.lat) * (sin(dlon / 2)) ^ 2;
+  double c = 2 * arcsin(min(1, sqrt(r)));
+  double distances = 3961 * c;
 
   // where 3961 is the approximate radius of the earth at the latitude of
   // Washington, D.C., in miles
-  return 0;
+  return distances;
 }
 
 /**
