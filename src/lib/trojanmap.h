@@ -51,7 +51,7 @@ class TrojanMap {
   std::pair<double, double> GetPlotLocation(double lat, double lon);
   //-----------------------------------------------------
   // TODO: Implement these functions and create unit tests for them:
-
+  void MapNames();
   // Get the Latitude of a Node given its id.
   double GetLat(std::string id);
 
@@ -96,6 +96,7 @@ class TrojanMap {
  private:
   // A map of ids to Nodes.
   std::map<std::string, Node> data;
+  std::map<std::string, std::string> name_to_id;
 };
 
 #endif

@@ -336,6 +336,23 @@ std::pair<double, double> TrojanMap::GetPlotLocation(double lat, double lon) {
 //-----------------------------------------------------
 // TODO: Student should implement the following:
 //-----------------------------------------------------
+
+/**
+ * MapNames: Creates a mapping from name to ID
+ * 
+ * @param  {std::string} id : location id
+ * @return {double}         : latitude
+ */
+void TrojanMap::MapNames()
+{
+  for(auto item : data)
+  {
+    if (item.second.name != "")
+    {
+      name_to_id[item.second.name] = item.second.id;
+    }
+  }
+}
 /**
  * GetLat: Get the latitude of a Node given its id.
  * 
@@ -399,10 +416,15 @@ double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
  */
 double TrojanMap::CalculatePathLength(const std::vector<std::string> &path) {
   double sum = 0;
+  for (auto it = 0; it < path.size() - 1; it++)
+  {
+    sum += CalculateDistance(data[path[it]], data[path[++it]]);
+  }
   return sum;
 }
 
 /**
+ * SINA
  * Autocomplete: Given a parital name return all the possible locations with
  * partial name as the prefix.
  *
@@ -415,6 +437,7 @@ std::vector<std::string> TrojanMap::Autocomplete(std::string name) {
 }
 
 /**
+ * MATT
  * GetPosition: Given a location name, return the position.
  *
  * @param  {std::string} name          : location name
@@ -422,10 +445,17 @@ std::vector<std::string> TrojanMap::Autocomplete(std::string name) {
  */
 std::pair<double, double> TrojanMap::GetPosition(std::string name) {
   std::pair<double, double> results(-1, -1);
+  if(name_to_id.find(name) != name_to_id.end())
+  {
+    results.first = data[name_to_id[name]].lat;
+    results.second = data[name_to_id[name]].lon;
+    PlotPoint(name_to_id[name]);
+  }
   return results;
 }
 
 /**
+ * MATT
  * CalculateShortestPath: Given 2 locations, return the shortest path which is a
  * list of id.
  *
