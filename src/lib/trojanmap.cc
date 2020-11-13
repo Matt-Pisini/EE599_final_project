@@ -366,11 +366,7 @@ std::string TrojanMap::GetName(std::string id) { return data[id].name; }
  * @param  {std::string} id            : location id
  * @return {std::vector<std::string>}  : neighbor ids
  */
-std::vector<std::string> TrojanMap::GetNeighborIDs(std::string id) {
-    std::vector<std::string> result;
-    result = data[id].neighbors;
-    return result;
-}
+std::vector<std::string> TrojanMap::GetNeighborIDs(std::string id) { return data[id].neighbors;}
 
 
 /**
@@ -386,8 +382,8 @@ double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
   // dlat = lat2 - lat1;
   double dlon = b.lon - a.lon;
   double dlat = b.lat - a.lat;
-  double r = (sin(dlat / 2)) ^ 2 + cos(a.lat) * cos(b.lat) * (sin(dlon / 2)) ^ 2;
-  double c = 2 * arcsin(min(1, sqrt(r)));
+  double r = pow((sin(dlat / 2)), 2) + cos(a.lat) * cos(b.lat) * pow((sin(dlon / 2)),2);
+  double c = 2 * asin(fmin(1, sqrt(r)));
   double distances = 3961 * c;
 
   // where 3961 is the approximate radius of the earth at the latitude of
