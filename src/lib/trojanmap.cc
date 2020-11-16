@@ -14,12 +14,20 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <set>
 
 #include "opencv2/core.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
+
+/********************* GLOBALS *********************/
+
+//Set parameters for CalculateShortestPath algorithm
+#define A_ALGORITHM 1
+#define DJIKSTRAS_ALGORITHM 0
+
 
 //-----------------------------------------------------
 // TODO (Students): You do not and should not change the following functions:
@@ -463,10 +471,62 @@ std::pair<double, double> TrojanMap::GetPosition(std::string name) {
  * @param  {std::string} location2_name     : goal
  * @return {std::vector<std::string>}       : path
  */
-std::vector<std::string> TrojanMap::CalculateShortestPath(
-    std::string location1_name, std::string location2_name) {
-  std::vector<std::string> x;
-  return x;
+std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_name, std::string location2_name) 
+{
+  std::vector<std::string> path;
+  Node point1 = data[name_to_id[location1_name]];
+  Node point2 = data[name_to_id[location2_name]];
+
+  /************************* A* Algorithm ********************************/
+  if(A_ALGORITHM)
+  {  
+    std::set<std::string> visited_nodes;
+    Node next_hop, current_node;
+    current_node = point1;
+    path.push_back(point1.id);
+    double shortest_euclid = DBL_MAX;
+    while(current_node.id != point2.id)
+    {
+      visited_nodes.insert(current_node.id);      //add node id to visited list
+      for(auto x : visited_nodes) std::cout << x;
+      std::cout << std::endl;
+      std::cout<< "Current Node: " << current_node.id << std::endl;
+      std::cout << "Num neighbors: " << current_node.neighbors.size() << std::endl;
+      for(auto items : current_node.neighbors)    //explore all neighbors from current node
+      {
+        // str.erase(std::remove(str.begin(), str.end(), " "), str.end());
+        std::cout << "Items:" << items << std::endl;
+        if(visited_nodes.find(items) != visited_nodes.end()) std::cout << "REPEAT" << std::endl;
+        if(visited_nodes.find(items) == visited_nodes.end())  //check if node has not been visited
+        {
+          std::cout << "data[items]: " << data[items].id << std::endl;
+           double euclid_dist = CalculateDistance(data[items], point2); //calculate Euclidean dist from neighbor to destination (Heuristic)
+          std::cout << "Heuristic: " << euclid_dist << std::endl;
+          double next_node_dist = CalculateDistance(current_node,data[items]); //calculate dist from current node to neighbor
+          std::cout << "Next Hop: " << next_node_dist << std::endl;
+          if ((euclid_dist + next_node_dist) < shortest_euclid)        //compare neighbor euclid dist to current euclid shortest dist
+          {
+            shortest_euclid = euclid_dist + next_node_dist;        //set euclid dist to new shortest euclid dist
+            next_hop = data[items];                                //set next hop to this neighbor node
+          }
+        }
+      }
+      shortest_euclid = DBL_MAX;         //reset shortest distance
+      path.push_back(next_hop.id);       //add next hop id to path
+      std::cout << "Added: " << next_hop.id << std::endl;
+      current_node = next_hop;           //make current node the next hop
+    }
+  }
+  /***********************************************************************/
+
+  /********************** DJIKSTRAS Algorithm ****************************/
+  if(DJIKSTRAS_ALGORITHM)
+  {
+
+  }
+  /***********************************************************************/
+  PlotPath(path);
+  return path;
 }
 
 /**
