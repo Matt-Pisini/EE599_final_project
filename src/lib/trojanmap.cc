@@ -213,8 +213,10 @@ void TrojanMap::CreateGraphFromCSVFile() {
         n.lon = stod(word);
       else if (count == 3)
         n.name = word;
-      else
+      else {
+        word.erase(std::remove(word.begin(), word.end(), ' '), word.end());
         n.neighbors.push_back(word);
+      }
       count++;
     }
     data[n.id] = n;
@@ -485,22 +487,23 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
     current_node = point1;
     path.push_back(point1.id);
     double shortest_euclid = DBL_MAX;
+    int count = 0;
     while(current_node.id != point2.id)
     {
-      visited_nodes.insert(current_node.id);      //add node id to visited list
-      for(auto x : visited_nodes) std::cout << x;
+      count++;
+      // visited_nodes.insert(current_node.id);      //add node id to visited list
+      // for(auto x : visited_nodes) std::cout << x;
       std::cout << std::endl;
       std::cout<< "Current Node: " << current_node.id << std::endl;
       std::cout << "Num neighbors: " << current_node.neighbors.size() << std::endl;
       for(auto items : current_node.neighbors)    //explore all neighbors from current node
       {
-        // str.erase(std::remove(str.begin(), str.end(), " "), str.end());
-        std::cout << "Items:" << items << std::endl;
+        std::cout << "Items:" << str << std::endl;
         if(visited_nodes.find(items) != visited_nodes.end()) std::cout << "REPEAT" << std::endl;
         if(visited_nodes.find(items) == visited_nodes.end())  //check if node has not been visited
         {
           std::cout << "data[items]: " << data[items].id << std::endl;
-           double euclid_dist = CalculateDistance(data[items], point2); //calculate Euclidean dist from neighbor to destination (Heuristic)
+          double euclid_dist = CalculateDistance(data[items], point2); //calculate Euclidean dist from neighbor to destination (Heuristic)
           std::cout << "Heuristic: " << euclid_dist << std::endl;
           double next_node_dist = CalculateDistance(current_node,data[items]); //calculate dist from current node to neighbor
           std::cout << "Next Hop: " << next_node_dist << std::endl;
@@ -515,6 +518,7 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
       path.push_back(next_hop.id);       //add next hop id to path
       std::cout << "Added: " << next_hop.id << std::endl;
       current_node = next_hop;           //make current node the next hop
+      if(count == 7) break;
     }
   }
   /***********************************************************************/
