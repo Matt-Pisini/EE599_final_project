@@ -15,6 +15,8 @@
 #include <string>
 #include <utility>
 #include <set>
+#include <cctype>
+#include <string>
 
 #include "opencv2/core.hpp"
 #include "opencv2/highgui.hpp"
@@ -441,6 +443,21 @@ double TrojanMap::CalculatePathLength(const std::vector<std::string> &path) {
  */
 std::vector<std::string> TrojanMap::Autocomplete(std::string name) {
   std::vector<std::string> results;
+  
+  for (auto x: data) {
+    
+    Node node = x.second;
+    std::string location = (node.name);
+    std::transform(location.begin(), location.end(), location.begin(), ::tolower);
+
+    if (location.rfind(name, 0) == 0) {
+  // s starts with prefix
+    results.push_back(node.name);
+    }
+
+
+  }
+  
   return results;
 }
 
