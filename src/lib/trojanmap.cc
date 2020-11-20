@@ -451,7 +451,7 @@ std::vector<std::string> TrojanMap::Autocomplete(std::string name) {
     Node node = x.second;
     std::string location = (node.name);
     std::transform(location.begin(), location.end(), location.begin(), ::tolower);
-
+    std::transform(name.begin(), name.end(),name.begin(), ::tolower);
     if (location.rfind(name, 0) == 0) {
   // s starts with prefix
     results.push_back(node.name);
@@ -515,7 +515,7 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
       std::cout << "Num neighbors: " << current_node.neighbors.size() << std::endl;
       for(auto items : current_node.neighbors)    //explore all neighbors from current node
       {
-        std::cout << "Items:" << str << std::endl;
+        //std::cout << "Items:" << str << std::endl;
         if(visited_nodes.find(items) != visited_nodes.end()) std::cout << "REPEAT" << std::endl;
         if(visited_nodes.find(items) == visited_nodes.end())  //check if node has not been visited
         {
@@ -559,6 +559,72 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
  */
 std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTrojan(
                                     std::vector<std::string> &location_ids) {
+  
+ 
+  //location_ids.push_back(location_ids[0]);
   std::pair<double, std::vector<std::vector<std::string>>> results;
+  std::vector<std::string> min_path;
+  permute_brute_force_helper(location_ids, results.second, {});
+
+  double sum, min_sum;
+  min_sum = DBL_MAX;
+
+  
+  for (int i = 0; i < results.second.size(); i++) {
+    results.second[i].push_back(location_ids[0]);
+    
+
+  }
+  
+for (auto it = results.second.begin(); it != results.second.end();) {
+    std::string first_id = (*it)[0];
+    if(first_id != location_ids[0]) {
+      it  = results.second.erase(it);
+    }
+    else {
+      ++it;
+    }
+}
+
+  for (auto m: results.second ){
+      
+      //std::cout<<m[0]<< " " << m.back() <<" "<<m.size()<<std::endl;
+      sum = 0;
+      for (auto it = 0; it < m.size()-1; it++)
+      {   
+        sum += CalculateDistance(data[m[it]], data[m[++it]]);
+      }
+    if (sum < min_sum) {
+      min_sum = sum;
+      min_path = m;
+    }
+    //std::cout<<sum <<std::endl;
+  }
+  
+  results.first = min_sum;
+  results.second.push_back(min_path);
   return results;
 } 
+
+
+
+
+void permute_brute_force_helper(std::vector<std::string> &input, std::vector<std::vector<std::string>> &result, std::vector<std::string> currentResult) {
+
+  if(currentResult.size() == input.size()) {
+    result.push_back(currentResult);
+    return;
+  }
+
+  for (int i = 0; i < input.size(); i++)  {
+    //std::cout<<input[i] << std::endl;
+    if(std::find(currentResult.begin(), currentResult.end(), input[i]) != currentResult.end()) {
+      continue;
+    }
+
+    std::vector<std::string> nextCurrentResult = currentResult;
+    nextCurrentResult.push_back(input[i]);
+    permute_brute_force_helper(input, result, nextCurrentResult);
+  }
+
+}
