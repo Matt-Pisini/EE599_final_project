@@ -99,4 +99,8 @@ class TrojanMap {
   std::map<std::string, std::string> name_to_id;
 };
 
+
+
+void permute_brute_force_helper(std::vector<std::string> &input, std::vector<std::vector<std::string>> &result, std::vector<std::string> currentResult);
+
 #endif
