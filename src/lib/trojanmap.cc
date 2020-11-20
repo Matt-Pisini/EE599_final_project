@@ -17,6 +17,8 @@
 #include <set>
 #include <cctype>
 #include <string>
+#include <stack>
+#include <chrono>
 
 #include "opencv2/core.hpp"
 #include "opencv2/highgui.hpp"
@@ -409,10 +411,12 @@ double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
   // TODO: Use Haversine Formula:
   // dlon = lon2 - lon1;
   // dlat = lat2 - lat1;
-  double dlon = b.lon - a.lon;
-  double dlat = b.lat - a.lat;
-  double r = pow((sin(dlat / 2)), 2) + cos(a.lat) * cos(b.lat) * pow((sin(dlon / 2)),2);
-  double c = 2 * asin(fmin(1, sqrt(r)));
+  double dlon = (b.lon - a.lon) * M_PI / 180.0;
+  double dlat = (b.lat - a.lat) * M_PI / 180.0;
+  double a_lat = a.lat * M_PI / 180.0;
+  double b_lat = b.lat * M_PI / 180.0;
+  double r = pow((sin(dlat / 2)), 2) + cos(a_lat) * cos(b_lat) * pow((sin(dlon / 2)),2);
+  double c = 2 * asin(sqrt(r));
   double distances = 3961 * c;
 
   // where 3961 is the approximate radius of the earth at the latitude of
@@ -430,7 +434,7 @@ double TrojanMap::CalculatePathLength(const std::vector<std::string> &path) {
   double sum = 0;
   for (auto it = 0; it < path.size() - 1; it++)
   {
-    sum += CalculateDistance(data[path[it]], data[path[++it]]);
+    sum += CalculateDistance(data[path[it]], data[path[it+1]]);
   }
   return sum;
 }
@@ -495,49 +499,67 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
   std::vector<std::string> path;
   Node point1 = data[name_to_id[location1_name]];
   Node point2 = data[name_to_id[location2_name]];
-
+  std::chrono::time_point<std::chrono::system_clock> start_time = std::chrono::system_clock::now();
   /************************* A* Algorithm ********************************/
   if(A_ALGORITHM)
   {  
     std::set<std::string> visited_nodes;
+    std::stack<std::string> visited_node_stack; //could change path to only update at end
     Node next_hop, current_node;
     current_node = point1;
-    path.push_back(point1.id);
     double shortest_euclid = DBL_MAX;
     int count = 0;
+    double euclid_dist;
+    double next_node_dist;
     while(current_node.id != point2.id)
     {
       count++;
-      // visited_nodes.insert(current_node.id);      //add node id to visited list
-      // for(auto x : visited_nodes) std::cout << x;
-      std::cout << std::endl;
-      std::cout<< "Current Node: " << current_node.id << std::endl;
-      std::cout << "Num neighbors: " << current_node.neighbors.size() << std::endl;
+      visited_nodes.insert(current_node.id);      //add node id to visited list
       for(auto items : current_node.neighbors)    //explore all neighbors from current node
       {
-        std::cout << "Items:" << str << std::endl;
-        if(visited_nodes.find(items) != visited_nodes.end()) std::cout << "REPEAT" << std::endl;
-        if(visited_nodes.find(items) == visited_nodes.end())  //check if node has not been visited
+
+        if(visited_nodes.find(items) != visited_nodes.end()){}
+        else
         {
-          std::cout << "data[items]: " << data[items].id << std::endl;
-          double euclid_dist = CalculateDistance(data[items], point2); //calculate Euclidean dist from neighbor to destination (Heuristic)
-          std::cout << "Heuristic: " << euclid_dist << std::endl;
-          double next_node_dist = CalculateDistance(current_node,data[items]); //calculate dist from current node to neighbor
-          std::cout << "Next Hop: " << next_node_dist << std::endl;
-          if ((euclid_dist + next_node_dist) < shortest_euclid)        //compare neighbor euclid dist to current euclid shortest dist
+          euclid_dist = CalculateDistance(data[items], point2); //calculate Euclidean dist from neighbor to destination (Heuristic)
+          if (euclid_dist < shortest_euclid)        //compare neighbor euclid dist to current euclid shortest dist
           {
-            shortest_euclid = euclid_dist + next_node_dist;        //set euclid dist to new shortest euclid dist
+            shortest_euclid = euclid_dist;        //set euclid dist to new shortest euclid dist
             next_hop = data[items];                                //set next hop to this neighbor node
           }
         }
       }
+      if (next_hop.id == current_node.id)         //node was a dead end, return to previous node and try again
+      {
+        current_node = data[visited_node_stack.top()];
+        visited_node_stack.pop();
+        next_hop = current_node;
+      }
+      else                                        //unique node on new path
+      {
+        visited_node_stack.push(current_node.id);
+        current_node = next_hop;           //make current node the next hop
+      }  
       shortest_euclid = DBL_MAX;         //reset shortest distance
-      path.push_back(next_hop.id);       //add next hop id to path
-      std::cout << "Added: " << next_hop.id << std::endl;
-      current_node = next_hop;           //make current node the next hop
-      if(count == 7) break;
     }
+    std::chrono::time_point<std::chrono::system_clock> end_time = std::chrono::system_clock::now();
+    auto TOTAL_TIME = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
+
+    visited_node_stack.push(current_node.id);
+    while(!visited_node_stack.empty())
+    {
+      path.push_back(visited_node_stack.top());
+      visited_node_stack.pop();
+    }
+    std::cout << "A* Algorithm has completed the shortest path calculation!\n" << std::endl;
+    std::cout << "Total Time: " << TOTAL_TIME << " microseconds" << std::endl;
+    std::cout << "Direct path distance: " << CalculateDistance(data[name_to_id[location1_name]],data[name_to_id[location2_name]]) << " miles" << std::endl;
+    std::cout << "Path length: " << CalculatePathLength(path) << " miles" << std::endl;
+    std::cout << "Nodes along path: " << path.size() << std::endl;
+    std::cout << "Steps taken: " << count << std::endl;
   }
+
+  
   /***********************************************************************/
 
   /********************** DJIKSTRAS Algorithm ****************************/
