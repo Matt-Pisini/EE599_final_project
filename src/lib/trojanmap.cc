@@ -29,8 +29,8 @@
 /********************* GLOBALS *********************/
 
 //Set parameters for CalculateShortestPath algorithm
-#define A_ALGORITHM 1
-#define DJIKSTRAS_ALGORITHM 0
+#define A_ALGORITHM 0
+#define DJIKSTRAS_ALGORITHM 1
 
 
 //-----------------------------------------------------
@@ -485,6 +485,19 @@ std::pair<double, double> TrojanMap::GetPosition(std::string name) {
   return results;
 }
 
+
+// std::map<std::string, std::vector<std::pair<std::string,double>>> AdjacencyConstruct()
+// {
+//   std::map<std::string, std::vector<std::pair<std::string,double>>> adjacency_list;
+//   for(auto item : data)
+//   {
+//     for(auto neighbor : item.neighbors)
+//     {
+//       adjacency_list[item.id].push_back(std::pair<std::string,double>(neighbor.id, CalculateDistance(item,neighbor)));
+//     }
+//   }
+//   return adjacency_list;
+// }
 /**
  * MATT
  * CalculateShortestPath: Given 2 locations, return the shortest path which is a
@@ -510,22 +523,15 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
     double shortest_euclid = DBL_MAX;
     int count = 0;
     double euclid_dist;
-    double next_node_dist;
     while(current_node.id != point2.id)
     {
       count++;
       visited_nodes.insert(current_node.id);      //add node id to visited list
       for(auto items : current_node.neighbors)    //explore all neighbors from current node
       {
-<<<<<<< HEAD
 
         if(visited_nodes.find(items) != visited_nodes.end()){}
         else
-=======
-        //std::cout << "Items:" << str << std::endl;
-        if(visited_nodes.find(items) != visited_nodes.end()) std::cout << "REPEAT" << std::endl;
-        if(visited_nodes.find(items) == visited_nodes.end())  //check if node has not been visited
->>>>>>> 8c813ebf34245691fae5620a943ac51a6e61547c
         {
           euclid_dist = CalculateDistance(data[items], point2); //calculate Euclidean dist from neighbor to destination (Heuristic)
           if (euclid_dist < shortest_euclid)        //compare neighbor euclid dist to current euclid shortest dist
@@ -571,7 +577,78 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
   /********************** DJIKSTRAS Algorithm ****************************/
   if(DJIKSTRAS_ALGORITHM)
   {
+    //build adjacency list
+    std::map<std::string, std::vector<std::pair<std::string,double>>> adjacency_list;
+    for(auto item : data)
+    {
+      for(auto neighbor : item.second.neighbors)
+      {
+        adjacency_list[item.second.id].push_back(std::pair<std::string,double>(neighbor, CalculateDistance(item.second,data[neighbor])));
+      }
+    }
+    typedef std::pair<double,std::pair<std::string,std::string>> pq_node;
+    std::priority_queue<pq_node,std::vector<pq_node>,std::greater<pq_node>> pq; //{dist, (prev_node,current_node)}
 
+    //add starting node's neighbors to priority queue
+    for(auto x : adjacency_list[point1.id])
+    {
+      pq.push(make_pair(x.second, std::pair<std::string,std::string>(point1.id, x.first))); //{total_dist,{prev_node, next_node}}
+    } 
+    //add starting node to visited_nodes map
+    std::map<std::string, double> visited_nodes = {{point1.id,0.0}};  //total distance to the dest. node (key)
+    std::map<std::string, std::string> direction_map;               //input dest. node (key) and value is prev node on shortest path
+
+    pq_node current;
+    int count = 0;
+    while(!pq.empty())
+    {
+      // count++;
+      // std::cout << count << std::endl;
+      current = pq.top();
+      pq.pop();
+      // std::cout << "Current Node: " << current.second.second << std::endl;
+      // std::cout << "Prev Node: " << current.second.first << std::endl;
+      // std::cout << "Total Distance: " << current.first << std::endl;
+      if(!visited_nodes.count(current.second.second))                 //unvisited node
+      {
+        visited_nodes[current.second.second] = current.first;         //add to visited nodes {current_node: total_dist}
+        direction_map[current.second.second] = current.second.first;  //add to direction map {current_node: prev_node}
+      }
+      else
+      {
+        if( (current.first) < visited_nodes[current.second.second])
+        {
+          visited_nodes[current.second.second] = current.first;
+          direction_map[current.second.second] = current.second.first;
+        }
+      }
+      for(auto neighbor : adjacency_list[current.second.second])
+      {
+        if(neighbor.first != current.second.first && !visited_nodes.count(neighbor.first)) //dont add neighbor that node came from
+        {
+        //Add node to priority queue
+        //Node: {total_dist, {current_node, next_node}}
+        pq.push(make_pair(neighbor.second + visited_nodes[current.second.second], std::pair<std::string,std::string>(current.second.second, neighbor.first)));
+        }
+      }
+    }
+    std::chrono::time_point<std::chrono::system_clock> end_time = std::chrono::system_clock::now();
+    auto TOTAL_TIME = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
+    std::string temp;
+    std::string prev_node = point2.id;
+    while(prev_node != point1.id)
+    {
+      path.push_back(prev_node);
+      temp = direction_map[prev_node];
+      prev_node = temp;
+    }
+    std::reverse(path.begin(),path.end());
+
+    std::cout << "Dijkstra Algorithm has completed the shortest path calculation!\n" << std::endl;
+    std::cout << "Total Time: " << TOTAL_TIME << " microseconds" << std::endl;
+    std::cout << "Direct path distance: " << CalculateDistance(point1,point2) << " miles" << std::endl;
+    std::cout << "Path length: " << CalculatePathLength(path) << " miles" << std::endl;
+    std::cout << "Nodes along path: " << path.size() << std::endl;
   }
   /***********************************************************************/
   PlotPath(path);
