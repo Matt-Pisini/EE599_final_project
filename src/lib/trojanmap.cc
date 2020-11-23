@@ -19,6 +19,7 @@
 #include <string>
 #include <stack>
 #include <chrono>
+#include <cstdlib>      // std::rand, std::srand
 
 #include "opencv2/core.hpp"
 #include "opencv2/highgui.hpp"
@@ -31,7 +32,8 @@
 //Set parameters for CalculateShortestPath algorithm
 #define A_ALGORITHM 0
 #define DJIKSTRAS_ALGORITHM 1
-
+#define BRUTE_FORCE 0
+#define TWO_OPT 1
 
 //-----------------------------------------------------
 // TODO (Students): You do not and should not change the following functions:
@@ -664,17 +666,14 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
  */
 std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTrojan(
                                     std::vector<std::string> &location_ids) {
-  
- 
-  //location_ids.push_back(location_ids[0]);
   std::pair<double, std::vector<std::vector<std::string>>> results;
+  
+  if (BRUTE_FORCE) {                       
+  //location_ids.push_back(location_ids[0]);
   std::vector<std::string> min_path;
   permute_brute_force_helper(location_ids, results.second, {});
-
   double sum, min_sum;
   min_sum = DBL_MAX;
-
-  
   for (int i = 0; i < results.second.size(); i++) {
     results.second[i].push_back(location_ids[0]);
     
@@ -690,19 +689,18 @@ for (auto it = results.second.begin(); it != results.second.end();) {
       ++it;
     }
 }
-
+  //std::vector<double> sums;
   for (auto m: results.second ){
       
       //std::cout<<m[0]<< " " << m.back() <<" "<<m.size()<<std::endl;
-      sum = 0;
-      for (auto it = 0; it < m.size()-1; it++)
-      {   
-        sum += CalculateDistance(data[m[it]], data[m[++it]]);
-      }
-    if (sum < min_sum) {
+      
+      double sum = CalculatePathLength(m);
+        
+    if (sum <= min_sum) {
       min_sum = sum;
       min_path = m;
     }
+    //sums.push_back(sum);
     //std::cout<<sum <<std::endl;
   }
   
@@ -712,9 +710,68 @@ for (auto it = results.second.begin(); it != results.second.end();) {
 } 
 
 
+  if(TWO_OPT) {
+    //std::vector<std::string> locations  = location_ids;
+    //location_ids.push_back(location_ids[0]);
+    // for (auto n: locations) {
+    //   std::cout << n << std::endl;
+    // }
+    results.second.push_back(location_ids);
+    int improve = 0;
+    int size = location_ids.size();
+    double best_distance;
+    while (improve < 50)  {
+
+      best_distance = CalculatePathLength(location_ids);
+      for (int i = 0; i < size -1; i++) {
+        for(int k = i+1; k <size; k++) {
+          std::vector<std::string> new_locations;
+          twoOptSwap(i,k,location_ids, new_locations);
+          double new_distance = CalculatePathLength(new_locations);
+          
+          if(new_distance < best_distance) {
+            improve = 0;
+            location_ids = new_locations;
+            best_distance = new_distance;
+            //locations.push_back(location_ids[0]);
+            results.second.push_back(location_ids);
+          }
+        }
+      }
+      improve++;
+
+    }
+    results.first = best_distance;
+      for (int i = 0; i < results.second.size(); i++) {
+    results.second[i].push_back(location_ids[0]);
+    
+  }
+
+    return results;
+  }
+
+  
+  }
+
+void twoOptSwap( const int&i, const int &k, std::vector<std::string> &route, std::vector<std::string> &newRoute) {
+  
+  int size = route.size();
+  for (int c = 0; c < i; c++) {
+    newRoute.push_back(route[c]);
+  }
+
+  for (int c = k; c >= i; --c) {
+    newRoute.push_back(route[c]);
+  }
+
+  for (int c = k+1; c < size; ++c) {
+    newRoute.push_back(route[c]);
+  }
+
+}
 
 
-void permute_brute_force_helper(std::vector<std::string> &input, std::vector<std::vector<std::string>> &result, std::vector<std::string> currentResult) {
+void permuteBruteForceHelper(std::vector<std::string> &input, std::vector<std::vector<std::string>> &result, std::vector<std::string> currentResult) {
 
   if(currentResult.size() == input.size()) {
     result.push_back(currentResult);
@@ -733,3 +790,4 @@ void permute_brute_force_helper(std::vector<std::string> &input, std::vector<std
   }
 
 }
+
