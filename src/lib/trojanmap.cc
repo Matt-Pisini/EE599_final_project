@@ -30,8 +30,8 @@
 /********************* GLOBALS *********************/
 
 //Set parameters for CalculateShortestPath algorithm
-#define A_ALGORITHM 0
-#define DJIKSTRAS_ALGORITHM 1
+#define A_ALGORITHM 1
+#define DJIKSTRAS_ALGORITHM 0
 #define BRUTE_FORCE 0
 #define TWO_OPT 1
 
@@ -478,6 +478,7 @@ std::vector<std::string> TrojanMap::Autocomplete(std::string name) {
  */
 std::pair<double, double> TrojanMap::GetPosition(std::string name) {
   std::pair<double, double> results(-1, -1);
+  if(name_to_id.empty()) MapNames();
   if(name_to_id.find(name) != name_to_id.end())
   {
     results.first = data[name_to_id[name]].lat;
@@ -499,6 +500,8 @@ std::pair<double, double> TrojanMap::GetPosition(std::string name) {
 std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_name, std::string location2_name) 
 {
   std::vector<std::string> path;
+  if(name_to_id.empty()) MapNames();
+  if(!name_to_id.count(location1_name) || !name_to_id.count(location2_name)) return {};
   Node point1 = data[name_to_id[location1_name]];
   Node point2 = data[name_to_id[location2_name]];
   std::chrono::time_point<std::chrono::system_clock> start_time = std::chrono::system_clock::now();
@@ -506,12 +509,15 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
   if(A_ALGORITHM)
   {  
     std::set<std::string> visited_nodes;
-    std::stack<std::string> visited_node_stack; //could change path to only update at end
+    std::stack<std::string> visited_node_stack;
     Node next_hop, current_node;
     current_node = point1;
     double shortest_euclid = DBL_MAX;
     int count = 0;
     double euclid_dist;
+    double current_dist = DBL_MAX;
+    int increase_counter = 0;
+    int increase_thresh = 2;
     while(current_node.id != point2.id)
     {
       count++;
@@ -530,7 +536,17 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
           }
         }
       }
-      if (next_hop.id == current_node.id)         //node was a dead end, return to previous node and try again
+      if(increase_counter >= increase_thresh)
+      {
+        for(int i = increase_counter; i > 0; i--)
+        {
+          if(!visited_node_stack.empty()) visited_node_stack.pop();
+        }
+        current_node = data[visited_node_stack.top()];
+        next_hop = current_node;
+        increase_counter = 0;
+      }
+      else if (next_hop.id == current_node.id)         //node was a dead end, return to previous node and try again
       {
         current_node = data[visited_node_stack.top()];
         visited_node_stack.pop();
@@ -540,7 +556,17 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
       {
         visited_node_stack.push(current_node.id);
         current_node = next_hop;           //make current node the next hop
-      }  
+      }
+      // if(shortest_euclid < current_dist)
+      // {
+      //   current_dist = shortest_euclid;
+      //   increase_counter = 0;
+      // } 
+      // else
+      // {
+      //   increase_counter++;
+      // }
+        
       shortest_euclid = DBL_MAX;         //reset shortest distance
     }
     std::chrono::time_point<std::chrono::system_clock> end_time = std::chrono::system_clock::now();
@@ -583,10 +609,7 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
     {
       pq.push(make_pair(x.second, std::pair<std::string,std::string>(point1.id, x.first))); //{total_dist,{prev_node, next_node}}
     } 
-    // for(auto x : data[point1.id].neighbors)
-    // {
-    //   pq.push(make_pair(CalculateDistance(data[point1.id],data[x]), std::pair<std::string,std::string>(point1.id, x))); //{total_dist,{prev_node, next_node}}   
-    // }
+
     //add starting node to visited_nodes map
     std::map<std::string, double> visited_nodes = {{point1.id,0.0}};  //total distance to the dest. node (key)
     std::map<std::string, std::string> direction_map;               //input dest. node (key) and value is prev node on shortest path
@@ -622,13 +645,6 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
         pq.push(make_pair(neighbor.second + visited_nodes[current.second.second], std::pair<std::string,std::string>(current.second.second, neighbor.first)));
         }
       }
-      // for(auto neighbor : data[current.second.second].neighbors)
-      // {
-      //   if(neighbor != current.second.first && !visited_nodes.count(neighbor))
-      //   {
-      //     pq.push(make_pair(CalculateDistance(data[neighbor],data[current.second.second]) + visited_nodes[current.second.second], std::pair<std::string,std::string>(current.second.second, neighbor)));
-      //   }
-      // }
     }
     std::chrono::time_point<std::chrono::system_clock> end_time = std::chrono::system_clock::now();
     auto TOTAL_TIME = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
@@ -645,8 +661,8 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
     path.push_back(prev_node);
     std::reverse(path.begin(),path.end()); //list returned is destination->source so we reverse it
 
-    std::cout << "Iterations: " << count << std::endl;
     std::cout << "Dijkstra Algorithm has completed the shortest path calculation!\n" << std::endl;
+    std::cout << "Iterations: " << count << std::endl;
     std::cout << "Total Time: " << TOTAL_TIME << " microseconds" << std::endl;
     std::cout << "Direct path distance: " << CalculateDistance(point1,point2) << " miles" << std::endl;
     std::cout << "Path length: " << CalculatePathLength(path) << " miles" << std::endl;
@@ -671,7 +687,7 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
   if (BRUTE_FORCE) {                       
   //location_ids.push_back(location_ids[0]);
   std::vector<std::string> min_path;
-  permute_brute_force_helper(location_ids, results.second, {});
+  permuteBruteForceHelper(location_ids, results.second, {});
   double sum, min_sum;
   min_sum = DBL_MAX;
   for (int i = 0; i < results.second.size(); i++) {
@@ -786,7 +802,7 @@ void permuteBruteForceHelper(std::vector<std::string> &input, std::vector<std::v
 
     std::vector<std::string> nextCurrentResult = currentResult;
     nextCurrentResult.push_back(input[i]);
-    permute_brute_force_helper(input, result, nextCurrentResult);
+    permuteBruteForceHelper(input, result, nextCurrentResult);
   }
 
 }
