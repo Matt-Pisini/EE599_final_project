@@ -30,8 +30,8 @@
 /********************* GLOBALS *********************/
 
 //Set parameters for CalculateShortestPath algorithm
-#define A_ALGORITHM 1
-#define DJIKSTRAS_ALGORITHM 0
+#define A_ALGORITHM 0
+#define DJIKSTRAS_ALGORITHM 1
 #define BRUTE_FORCE 0
 #define TWO_OPT 1
 
@@ -517,7 +517,7 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
     double euclid_dist;
     double current_dist = DBL_MAX;
     int increase_counter = 0;
-    int increase_thresh = 2;
+    int increase_thresh = 5;
     while(current_node.id != point2.id)
     {
       count++;
@@ -536,15 +536,37 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
           }
         }
       }
+
       if(increase_counter >= increase_thresh)
       {
+        std::cout << "Entering back tracking phase." << std::endl;
         for(int i = increase_counter; i > 0; i--)
         {
           if(!visited_node_stack.empty()) visited_node_stack.pop();
         }
         current_node = data[visited_node_stack.top()];
-        next_hop = current_node;
+        std::cout << "Popped nodes off stack. Entering probing phase." << std::endl;
         increase_counter = 0;
+        bool neighbors = false;
+        while(!neighbors)
+        {
+          std::cout << "Checking for neighbors" << std::endl;
+          for(auto items : current_node.neighbors)
+          {
+            if(visited_nodes.find(items) == visited_nodes.end()) neighbors = true; //unvisited neighbor
+          }
+          if(!neighbors)
+          {
+            if(!visited_node_stack.empty())
+            {
+              visited_node_stack.pop();
+              current_node = data[visited_node_stack.top()];
+            }
+            else break; //stack empty 
+          }
+        }
+        next_hop = current_node;
+        current_dist = shortest_euclid;
       }
       else if (next_hop.id == current_node.id)         //node was a dead end, return to previous node and try again
       {
@@ -556,16 +578,19 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
       {
         visited_node_stack.push(current_node.id);
         current_node = next_hop;           //make current node the next hop
+        if(shortest_euclid <= current_dist)
+        {
+          std::cout << "Reset" << std::endl;
+          current_dist = shortest_euclid;
+          increase_counter = 0;
+        } 
+        else
+        {
+          std::cout << "Increased" << std::endl;
+          increase_counter++;
+        }
       }
-      // if(shortest_euclid < current_dist)
-      // {
-      //   current_dist = shortest_euclid;
-      //   increase_counter = 0;
-      // } 
-      // else
-      // {
-      //   increase_counter++;
-      // }
+      
         
       shortest_euclid = DBL_MAX;         //reset shortest distance
     }
