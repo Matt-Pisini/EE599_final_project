@@ -32,8 +32,11 @@
 //Set parameters for CalculateShortestPath algorithm
 #define A_ALGORITHM 0
 #define DJIKSTRAS_ALGORITHM 1
-#define BRUTE_FORCE 0
-#define TWO_OPT 1
+// set algo type 1 = Brute Force 
+// 2 = 2-Opt
+// 3 = 3-Opt
+#define ALGO_TYPE 1
+
 
 //-----------------------------------------------------
 // TODO (Students): You do not and should not change the following functions:
@@ -709,31 +712,37 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
                                     std::vector<std::string> &location_ids) {
   std::pair<double, std::vector<std::vector<std::string>>> results;
   
-  int16_t algo_type;
-  std::cout << "Please type in the algorithm you would like to use:" << std::endl << "1 = Brute Force" << std::endl << "2 = 2-Opt" << std::endl << "3 = 3-Opt"<< std::endl;
-  std::cin >> algo_type;
+  // int16_t algo_type;
+  // std::cout << "Please type in the algorithm you would like to use:" << std::endl << "1 = Brute Force" << std::endl << "2 = 2-Opt" << std::endl << "3 = 3-Opt"<< std::endl;
+  // std::cin >> algo_type;
 
-  if (algo_type == 1) {                       
+  if (ALGO_TYPE == 1) {                       
   //location_ids.push_back(location_ids[0]);
   std::vector<std::string> min_path;
-  permuteBruteForceHelper(location_ids, results.second, {});
-  double sum, min_sum;
+  
+  std::sort(location_ids.begin()+1,location_ids.end());
+  location_ids.push_back(location_ids[0]);
+  results.second.push_back(location_ids);
+  while(std::next_permutation(location_ids.begin()+1, location_ids.end()-1)) {
+      results.second.push_back(location_ids);
+  }
+  double min_sum;
   min_sum = DBL_MAX;
-  for (int i = 0; i < results.second.size(); i++) {
-    results.second[i].push_back(location_ids[0]);
+//   for (int i = 0; i < results.second.size(); i++) {
+//     results.second[i].push_back(location_ids[0]);
     
 
-  }
+//   }
   
-for (auto it = results.second.begin(); it != results.second.end();) {
-    std::string first_id = (*it)[0];
-    if(first_id != location_ids[0]) {
-      it  = results.second.erase(it);
-    }
-    else {
-      ++it;
-    }
-}
+// for (auto it = results.second.begin(); it != results.second.end();) {
+//     std::string first_id = (*it)[0];
+//     if(first_id != location_ids[0]) {
+//       it  = results.second.erase(it);
+//     }
+//     else {
+//       ++it;
+//     }
+// }
   //std::vector<double> sums;
   for (auto m: results.second ){
       
@@ -755,7 +764,7 @@ for (auto it = results.second.begin(); it != results.second.end();) {
 } 
 
 
-  if(algo_type == 2) {
+  if(ALGO_TYPE == 2) {
     //std::vector<std::string> locations  = location_ids;
     //location_ids.push_back(location_ids[0]);
     // for (auto n: locations) {
@@ -796,7 +805,7 @@ for (auto it = results.second.begin(); it != results.second.end();) {
   }
 
 
-if(algo_type == 3) {
+if(ALGO_TYPE == 3) {
     //std::vector<std::string> locations  = location_ids;
     //location_ids.push_back(location_ids[0]);
     // for (auto n: locations) {
