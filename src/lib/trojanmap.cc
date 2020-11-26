@@ -709,7 +709,11 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
                                     std::vector<std::string> &location_ids) {
   std::pair<double, std::vector<std::vector<std::string>>> results;
   
-  if (BRUTE_FORCE) {                       
+  int16_t algo_type;
+  std::cout << "Please type in the algorithm you would like to use:" << std::endl << "1 = Brute Force" << std::endl << "2 = 2-Opt" << std::endl << "3 = 3-Opt"<< std::endl;
+  std::cin >> algo_type;
+
+  if (algo_type == 1) {                       
   //location_ids.push_back(location_ids[0]);
   std::vector<std::string> min_path;
   permuteBruteForceHelper(location_ids, results.second, {});
@@ -751,7 +755,7 @@ for (auto it = results.second.begin(); it != results.second.end();) {
 } 
 
 
-  if(TWO_OPT) {
+  if(algo_type == 2) {
     //std::vector<std::string> locations  = location_ids;
     //location_ids.push_back(location_ids[0]);
     // for (auto n: locations) {
@@ -791,6 +795,64 @@ for (auto it = results.second.begin(); it != results.second.end();) {
     return results;
   }
 
+
+if(algo_type == 3) {
+    //std::vector<std::string> locations  = location_ids;
+    //location_ids.push_back(location_ids[0]);
+    // for (auto n: locations) {
+    //   std::cout << n << std::endl;
+    // }
+    results.second.push_back(location_ids);
+    int improve = 0;
+    int size = location_ids.size();
+    double best_distance;
+    while (improve < 50)  {
+
+      best_distance = CalculatePathLength(location_ids);
+      for (int i = 0; i < size-1; i++) {
+        for(int j = i+1; j <size; j++) {
+          for(int k = j+1; k < size; k++) {
+            std::vector<std::string> new_locations, new_locations1,new_locations2, new_locations3;
+            twoOptSwap(i,j,location_ids, new_locations1);
+            twoOptSwap(j,k,location_ids, new_locations2);
+            twoOptSwap(i,k,location_ids, new_locations3);
+
+            double d1 = CalculatePathLength(new_locations1);
+            double d2 = CalculatePathLength(new_locations2);
+            double d3 = CalculatePathLength(new_locations3);
+                if (d1 < d2 && d1 < d3) {
+                  new_locations = new_locations1;
+                }
+                else if (d2 < d3 && d2 < d1) {
+                  new_locations = new_locations2;
+                }
+
+                else{
+                  new_locations = new_locations3;
+                }
+            double new_distance = CalculatePathLength(new_locations);
+            
+            if(new_distance < best_distance) {
+              improve = 0;
+              location_ids = new_locations;
+              best_distance = new_distance;
+              //locations.push_back(location_ids[0]);
+              results.second.push_back(location_ids);
+            }
+        }
+        }
+      }
+      improve++;
+
+    }
+    results.first = best_distance;
+      for (int i = 0; i < results.second.size(); i++) {
+    results.second[i].push_back(location_ids[0]);
+    
+  }
+
+    return results;
+  }
   
   }
 
@@ -810,7 +872,6 @@ void twoOptSwap( const int&i, const int &k, std::vector<std::string> &route, std
   }
 
 }
-
 
 void permuteBruteForceHelper(std::vector<std::string> &input, std::vector<std::vector<std::string>> &result, std::vector<std::string> currentResult) {
 

@@ -103,4 +103,5 @@ class TrojanMap {
 
 void permuteBruteForceHelper(std::vector<std::string> &input, std::vector<std::vector<std::string>> &result, std::vector<std::string> currentResult);
 void twoOptSwap( const int &i, const int &k, std::vector<std::string> &route, std::vector<std::string> &newRoute);
+
 #endif
