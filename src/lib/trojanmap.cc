@@ -30,8 +30,9 @@
 /********************* GLOBALS *********************/
 
 //Set parameters for CalculateShortestPath algorithm
-#define A_ALGORITHM 0
-#define DJIKSTRAS_ALGORITHM 1
+// #define A_ALGORITHM 0
+// #define DJIKSTRAS_ALGORITHM 1
+int SHORTEST_PATH_ALGO = 0;
 // set algo type 1 = Brute Force 
 // 2 = 2-Opt
 // 3 = 3-Opt
@@ -127,6 +128,12 @@ void TrojanMap::PrintMenu() {
     std::cout << menu;
     std::string input2;
     getline(std::cin, input2);
+    menu = "Would you like to use Dijkstra's Algorithm or A* Algorithm?\n(Please enter 'd' for Dijkstra and 'a' for A*. Default is Dijkstra.)\n";
+    std::cout << menu;
+    std::string input3;
+    getline(std::cin, input3);
+    // if (input3 == "d" || input3 == "D") SHORTEST_PATH_ALGO = 0;
+    if(input3 == "a" || input3 == "A") SHORTEST_PATH_ALGO = 1;
     auto results = CalculateShortestPath(input1, input2);
     menu = "*************************Results******************************\n";
     std::cout << menu;
@@ -508,195 +515,191 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(std::string location1_
   Node point1 = data[name_to_id[location1_name]];
   Node point2 = data[name_to_id[location2_name]];
   std::chrono::time_point<std::chrono::system_clock> start_time = std::chrono::system_clock::now();
-  /************************* A* Algorithm ********************************/
-  if(A_ALGORITHM)
-  {  
-    std::set<std::string> visited_nodes;
-    std::stack<std::string> visited_node_stack;
-    Node next_hop, current_node;
-    current_node = point1;
-    double shortest_euclid = DBL_MAX;
-    int count = 0;
-    double euclid_dist;
-    double current_dist = DBL_MAX;
-    int increase_counter = 0;
-    int increase_thresh = 5;
-    while(current_node.id != point2.id)
-    {
-      count++;
-      visited_nodes.insert(current_node.id);      //add node id to visited list
-      for(auto items : current_node.neighbors)    //explore all neighbors from current node
-      {
-
-        if(visited_nodes.find(items) != visited_nodes.end()){}
-        else
-        {
-          euclid_dist = CalculateDistance(data[items], point2); //calculate Euclidean dist from neighbor to destination (Heuristic)
-          if (euclid_dist < shortest_euclid)        //compare neighbor euclid dist to current euclid shortest dist
-          {
-            shortest_euclid = euclid_dist;        //set euclid dist to new shortest euclid dist
-            next_hop = data[items];                                //set next hop to this neighbor node
-          }
-        }
-      }
-
-      if(increase_counter >= increase_thresh)
-      {
-        std::cout << "Entering back tracking phase." << std::endl;
-        for(int i = increase_counter; i > 0; i--)
-        {
-          if(!visited_node_stack.empty()) visited_node_stack.pop();
-        }
-        current_node = data[visited_node_stack.top()];
-        std::cout << "Popped nodes off stack. Entering probing phase." << std::endl;
-        increase_counter = 0;
-        bool neighbors = false;
-        while(!neighbors)
-        {
-          std::cout << "Checking for neighbors" << std::endl;
-          for(auto items : current_node.neighbors)
-          {
-            if(visited_nodes.find(items) == visited_nodes.end()) neighbors = true; //unvisited neighbor
-          }
-          if(!neighbors)
-          {
-            if(!visited_node_stack.empty())
-            {
-              visited_node_stack.pop();
-              current_node = data[visited_node_stack.top()];
-            }
-            else break; //stack empty 
-          }
-        }
-        next_hop = current_node;
-        current_dist = shortest_euclid;
-      }
-      else if (next_hop.id == current_node.id)         //node was a dead end, return to previous node and try again
-      {
-        current_node = data[visited_node_stack.top()];
-        visited_node_stack.pop();
-        next_hop = current_node;
-      }
-      else                                        //unique node on new path
-      {
-        visited_node_stack.push(current_node.id);
-        current_node = next_hop;           //make current node the next hop
-        if(shortest_euclid <= current_dist)
-        {
-          std::cout << "Reset" << std::endl;
-          current_dist = shortest_euclid;
-          increase_counter = 0;
-        } 
-        else
-        {
-          std::cout << "Increased" << std::endl;
-          increase_counter++;
-        }
-      }
-      
-        
-      shortest_euclid = DBL_MAX;         //reset shortest distance
-    }
-    std::chrono::time_point<std::chrono::system_clock> end_time = std::chrono::system_clock::now();
-    auto TOTAL_TIME = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
-
-    visited_node_stack.push(current_node.id);
-    while(!visited_node_stack.empty())
-    {
-      path.push_back(visited_node_stack.top());
-      visited_node_stack.pop();
-    }
-    std::cout << "A* Algorithm has completed the shortest path calculation!\n" << std::endl;
-    std::cout << "Total Time: " << TOTAL_TIME << " microseconds" << std::endl;
-    std::cout << "Direct path distance: " << CalculateDistance(data[name_to_id[location1_name]],data[name_to_id[location2_name]]) << " miles" << std::endl;
-    std::cout << "Path length: " << CalculatePathLength(path) << " miles" << std::endl;
-    std::cout << "Nodes along path: " << path.size() << std::endl;
-    std::cout << "Steps taken: " << count << std::endl;
-  }
-
-  
-  /***********************************************************************/
-
-  /********************** DJIKSTRAS Algorithm ****************************/
-  if(DJIKSTRAS_ALGORITHM)
+  switch(SHORTEST_PATH_ALGO)
   {
-    //build adjacency list
-    std::map<std::string, std::vector<std::pair<std::string,double>>> adjacency_list;
-    for(auto item : data)
+    /************************* A* Algorithm ********************************/
+    case 1:
     {
-      for(auto neighbor : item.second.neighbors)
+      std::set<std::string> visited_nodes;
+      std::stack<std::string> visited_node_stack;
+      Node next_hop, current_node;
+      current_node = point1;
+      double shortest_euclid = DBL_MAX;
+      int count = 0;
+      double euclid_dist;
+      double current_dist = DBL_MAX;
+      int increase_counter = 0;
+      int increase_thresh = 5;
+      while(current_node.id != point2.id)
       {
-        adjacency_list[item.second.id].push_back(std::pair<std::string,double>(neighbor, CalculateDistance(item.second,data[neighbor])));
-      }
-    }
-    typedef std::pair<double,std::pair<std::string,std::string>> pq_node;
-    std::priority_queue<pq_node,std::vector<pq_node>,std::greater<pq_node>> pq; //{dist, (prev_node,current_node)}
-
-    //add starting node's neighbors to priority queue
-    for(auto x : adjacency_list[point1.id])
-    {
-      pq.push(make_pair(x.second, std::pair<std::string,std::string>(point1.id, x.first))); //{total_dist,{prev_node, next_node}}
-    } 
-
-    //add starting node to visited_nodes map
-    std::map<std::string, double> visited_nodes = {{point1.id,0.0}};  //total distance to the dest. node (key)
-    std::map<std::string, std::string> direction_map;               //input dest. node (key) and value is prev node on shortest path
-
-    pq_node current;
-    int count = 0;
-    while(!pq.empty())
-    {
-      count++;
-      //pop shortest path node off priority queue
-      current = pq.top();
-      pq.pop();
-
-      if(!visited_nodes.count(current.second.second))                 //unvisited node
-      {
-        visited_nodes[current.second.second] = current.first;         //add to visited nodes {current_node: total_dist}
-        direction_map[current.second.second] = current.second.first;  //add to direction map {current_node: prev_node}
-      }
-      else
-      {
-        if( (current.first) < visited_nodes[current.second.second])
+        count++;
+        visited_nodes.insert(current_node.id);      //add node id to visited list
+        for(auto items : current_node.neighbors)    //explore all neighbors from current node
         {
-          visited_nodes[current.second.second] = current.first;
-          direction_map[current.second.second] = current.second.first;
+
+          if(visited_nodes.find(items) != visited_nodes.end()){}
+          else
+          {
+            euclid_dist = CalculateDistance(data[items], point2); //calculate Euclidean dist from neighbor to destination (Heuristic)
+            if (euclid_dist < shortest_euclid)        //compare neighbor euclid dist to current euclid shortest dist
+            {
+              shortest_euclid = euclid_dist;        //set euclid dist to new shortest euclid dist
+              next_hop = data[items];                                //set next hop to this neighbor node
+            }
+          }
+        }
+
+        if(increase_counter >= increase_thresh)
+        {
+          for(int i = increase_counter; i > 0; i--)
+          {
+            if(!visited_node_stack.empty()) visited_node_stack.pop();
+          }
+          current_node = data[visited_node_stack.top()];
+          increase_counter = 0;
+          bool neighbors = false;
+          while(!neighbors)
+          {
+            for(auto items : current_node.neighbors)
+            {
+              if(visited_nodes.find(items) == visited_nodes.end()) neighbors = true; //unvisited neighbor
+            }
+            if(!neighbors)
+            {
+              if(!visited_node_stack.empty())
+              {
+                visited_node_stack.pop();
+                current_node = data[visited_node_stack.top()];
+              }
+              else break; //stack empty 
+            }
+          }
+          next_hop = current_node;
+          current_dist = shortest_euclid;
+        }
+        else if (next_hop.id == current_node.id)         //node was a dead end, return to previous node and try again
+        {
+          current_node = data[visited_node_stack.top()];
+          visited_node_stack.pop();
+          next_hop = current_node;
+        }
+        else                                        //unique node on new path
+        {
+          visited_node_stack.push(current_node.id);
+          current_node = next_hop;           //make current node the next hop
+          if(shortest_euclid <= current_dist)
+          {
+            current_dist = shortest_euclid;
+            increase_counter = 0;
+          } 
+          else
+          {
+            increase_counter++;
+          }
+        }
+        
+          
+        shortest_euclid = DBL_MAX;         //reset shortest distance
+      }
+      std::chrono::time_point<std::chrono::system_clock> end_time = std::chrono::system_clock::now();
+      auto TOTAL_TIME = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
+
+      visited_node_stack.push(current_node.id);
+      while(!visited_node_stack.empty())
+      {
+        path.push_back(visited_node_stack.top());
+        visited_node_stack.pop();
+      }
+      std::cout << "A* Algorithm has completed the shortest path calculation!\n" << std::endl;
+      std::cout << "Total Time: " << TOTAL_TIME << " microseconds" << std::endl;
+      std::cout << "Direct path distance: " << CalculateDistance(data[name_to_id[location1_name]],data[name_to_id[location2_name]]) << " miles" << std::endl;
+      std::cout << "Path length: " << CalculatePathLength(path) << " miles" << std::endl;
+      std::cout << "Nodes along path: " << path.size() << std::endl;
+      std::cout << "Steps taken: " << count << std::endl;
+      break;
+    }
+    /********************** DJIKSTRAS Algorithm ****************************/
+    default:
+    {
+      //build adjacency list
+      std::map<std::string, std::vector<std::pair<std::string,double>>> adjacency_list;
+      for(auto item : data)
+      {
+        for(auto neighbor : item.second.neighbors)
+        {
+          adjacency_list[item.second.id].push_back(std::pair<std::string,double>(neighbor, CalculateDistance(item.second,data[neighbor])));
         }
       }
-      for(auto neighbor : adjacency_list[current.second.second])
+      typedef std::pair<double,std::pair<std::string,std::string>> pq_node;
+      std::priority_queue<pq_node,std::vector<pq_node>,std::greater<pq_node>> pq; //{dist, (prev_node,current_node)}
+
+      //add starting node's neighbors to priority queue
+      for(auto x : adjacency_list[point1.id])
       {
-        if(neighbor.first != current.second.first && !visited_nodes.count(neighbor.first)) //dont add neighbor that node came from or that has been visited
+        pq.push(make_pair(x.second, std::pair<std::string,std::string>(point1.id, x.first))); //{total_dist,{prev_node, next_node}}
+      } 
+
+      //add starting node to visited_nodes map
+      std::map<std::string, double> visited_nodes = {{point1.id,0.0}};  //total distance to the dest. node (key)
+      std::map<std::string, std::string> direction_map;               //input dest. node (key) and value is prev node on shortest path
+
+      pq_node current;
+      int count = 0;
+      while(!pq.empty())
+      {
+        count++;
+        //pop shortest path node off priority queue
+        current = pq.top();
+        pq.pop();
+
+        if(!visited_nodes.count(current.second.second))                 //unvisited node
         {
-        //Add node to priority queue
-        //Node: {total_dist, {current_node, next_node}}
-        pq.push(make_pair(neighbor.second + visited_nodes[current.second.second], std::pair<std::string,std::string>(current.second.second, neighbor.first)));
+          visited_nodes[current.second.second] = current.first;         //add to visited nodes {current_node: total_dist}
+          direction_map[current.second.second] = current.second.first;  //add to direction map {current_node: prev_node}
+        }
+        else
+        {
+          if( (current.first) < visited_nodes[current.second.second])
+          {
+            visited_nodes[current.second.second] = current.first;
+            direction_map[current.second.second] = current.second.first;
+          }
+        }
+        for(auto neighbor : adjacency_list[current.second.second])
+        {
+          if(neighbor.first != current.second.first && !visited_nodes.count(neighbor.first)) //dont add neighbor that node came from or that has been visited
+          {
+          //Add node to priority queue
+          //Node: {total_dist, {current_node, next_node}}
+          pq.push(make_pair(neighbor.second + visited_nodes[current.second.second], std::pair<std::string,std::string>(current.second.second, neighbor.first)));
+          }
         }
       }
-    }
-    std::chrono::time_point<std::chrono::system_clock> end_time = std::chrono::system_clock::now();
-    auto TOTAL_TIME = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
-    
-    //use direction map to create path from source to destination
-    std::string temp;
-    std::string prev_node = point2.id;
-    while(prev_node != point1.id)
-    {
+      std::chrono::time_point<std::chrono::system_clock> end_time = std::chrono::system_clock::now();
+      auto TOTAL_TIME = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
+      
+      //use direction map to create path from source to destination
+      std::string temp;
+      std::string prev_node = point2.id;
+      while(prev_node != point1.id)
+      {
+        path.push_back(prev_node);
+        temp = direction_map[prev_node];
+        prev_node = temp;
+      }
       path.push_back(prev_node);
-      temp = direction_map[prev_node];
-      prev_node = temp;
-    }
-    path.push_back(prev_node);
-    std::reverse(path.begin(),path.end()); //list returned is destination->source so we reverse it
+      std::reverse(path.begin(),path.end()); //list returned is destination->source so we reverse it
 
-    std::cout << "Dijkstra Algorithm has completed the shortest path calculation!\n" << std::endl;
-    std::cout << "Iterations: " << count << std::endl;
-    std::cout << "Total Time: " << TOTAL_TIME << " microseconds" << std::endl;
-    std::cout << "Direct path distance: " << CalculateDistance(point1,point2) << " miles" << std::endl;
-    std::cout << "Path length: " << CalculatePathLength(path) << " miles" << std::endl;
-    std::cout << "Nodes along path: " << path.size() << std::endl;
-  }
+      std::cout << "Dijkstra Algorithm has completed the shortest path calculation!\n" << std::endl;
+      std::cout << "Iterations: " << count << std::endl;
+      std::cout << "Total Time: " << TOTAL_TIME << " microseconds" << std::endl;
+      std::cout << "Direct path distance: " << CalculateDistance(point1,point2) << " miles" << std::endl;
+      std::cout << "Path length: " << CalculatePathLength(path) << " miles" << std::endl;
+      std::cout << "Nodes along path: " << path.size() << std::endl;
+      break;
+    }
   /***********************************************************************/
+  }
   PlotPath(path);
   return path;
 }

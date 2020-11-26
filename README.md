@@ -1,6 +1,8 @@
 EE599 Final Project
 Matthew Pisini & Sina Mahbobi
 
+About The Program:
+- For CalculateShortestPath(), we employed both A* and Dijkstra's algorithm. By default, Dijkstra's algorithm is used. Howeverr, in the menu statement after you select option 3 (CalculateShortestPath), there is an option to choose A* algorithm instead.
 
 1. High-level overview of your design (Use diagrams and pictures)
 
