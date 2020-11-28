@@ -32,10 +32,7 @@
 //Set parameters for CalculateShortestPath algorithm
 #define A_ALGORITHM 0
 #define DJIKSTRAS_ALGORITHM 1
-// set algo type 1 = Brute Force 
-// 2 = 2-Opt
-// 3 = 3-Opt
-#define ALGO_TYPE 1
+
 
 
 //-----------------------------------------------------
@@ -712,9 +709,9 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
                                     std::vector<std::string> &location_ids) {
   std::pair<double, std::vector<std::vector<std::string>>> results;
   
-  // int16_t algo_type;
+  // int16_t ALGO_TYPE;
   // std::cout << "Please type in the algorithm you would like to use:" << std::endl << "1 = Brute Force" << std::endl << "2 = 2-Opt" << std::endl << "3 = 3-Opt"<< std::endl;
-  // std::cin >> algo_type;
+  // std::cin >> ALGO_TYPE;
 
   if (ALGO_TYPE == 1) {                       
   //location_ids.push_back(location_ids[0]);
