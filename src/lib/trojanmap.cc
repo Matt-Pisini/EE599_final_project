@@ -30,7 +30,13 @@
 /********************* GLOBALS *********************/
 
 //Set parameters for CalculateShortestPath algorithm
-
+// #define A_ALGORITHM 0
+// #define DJIKSTRAS_ALGORITHM 1
+int SHORTEST_PATH_ALGO = 0;
+// set algo type 1 = Brute Force 
+// 2 = 2-Opt
+// 3 = 3-Opt
+#define ALGO_TYPE 1
 //-----------------------------------------------------
 // TODO (Students): You do not and should not change the following functions:
 //-----------------------------------------------------
