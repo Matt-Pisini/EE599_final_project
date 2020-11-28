@@ -33,10 +33,12 @@
 // #define A_ALGORITHM 0
 // #define DJIKSTRAS_ALGORITHM 1
 int SHORTEST_PATH_ALGO = 0;
+int ALGO_TYPE =1;
+//int ALGO_TYPE;
 // set algo type 1 = Brute Force 
 // 2 = 2-Opt
 // 3 = 3-Opt
-#define ALGO_TYPE 1
+//#define ALGO_TYPE 1
 //-----------------------------------------------------
 // TODO (Students): You do not and should not change the following functions:
 //-----------------------------------------------------
@@ -160,6 +162,16 @@ void TrojanMap::PrintMenu() {
     std::cout << menu;
     getline(std::cin, input);
     int num = std::stoi(input);
+    
+    menu = "Would you like to use Brute Force, 2 Opt, or 3 Opt?\n(Please enter 1 for Brute Force, 2 for 2 Opt, and 3 for 3 Opt. Default is Dijkstra.)\n";
+    std::cout << menu;
+    std::string input3;
+    getline(std::cin, input3);
+    // if (input3 == "d" || input3 == "D") SHORTEST_PATH_ALGO = 0;
+    if(input3 == "1" ) ALGO_TYPE = 1;
+    if(input3 == "2" ) ALGO_TYPE = 2;
+    if(input3 == "3" ) ALGO_TYPE = 3;
+
     std::vector<std::string> keys;
     for (auto x : data) {
       keys.push_back(x.first);
@@ -713,9 +725,7 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
                                     std::vector<std::string> &location_ids) {
   std::pair<double, std::vector<std::vector<std::string>>> results;
   
-  // int16_t ALGO_TYPE;
-  // std::cout << "Please type in the algorithm you would like to use:" << std::endl << "1 = Brute Force" << std::endl << "2 = 2-Opt" << std::endl << "3 = 3-Opt"<< std::endl;
-  // std::cin >> ALGO_TYPE;
+  // int16_t ALGO;
 
   if (ALGO_TYPE == 1) {                       
   //location_ids.push_back(location_ids[0]);

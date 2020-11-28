@@ -12,7 +12,7 @@
 // 1 = Brute Force (default)
 // 2 = 2-Opt
 // 3 = 3-Opt
-extern int ALGO_TYPE = 1;
+extern int ALGO_TYPE;
 
 // A Node is the location of one point in the map.
 class Node {
