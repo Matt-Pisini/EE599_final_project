@@ -30,10 +30,6 @@
 /********************* GLOBALS *********************/
 
 //Set parameters for CalculateShortestPath algorithm
-#define A_ALGORITHM 0
-#define DJIKSTRAS_ALGORITHM 1
-
-
 
 //-----------------------------------------------------
 // TODO (Students): You do not and should not change the following functions:
