@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-
+int ALGO_TYPE;
 TEST(TrojanMapTest, getposition) {
   TrojanMap m;
   m.CreateGraphFromCSVFile();
