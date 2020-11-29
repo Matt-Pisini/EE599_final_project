@@ -132,7 +132,6 @@ void TrojanMap::PrintMenu() {
     std::cout << menu;
     std::string input3;
     getline(std::cin, input3);
-    // if (input3 == "d" || input3 == "D") SHORTEST_PATH_ALGO = 0;
     if(input3 == "a" || input3 == "A") SHORTEST_PATH_ALGO = 1;
     auto results = CalculateShortestPath(input1, input2);
     menu = "*************************Results******************************\n";
@@ -162,6 +161,12 @@ void TrojanMap::PrintMenu() {
     std::cout << menu;
     getline(std::cin, input);
     int num = std::stoi(input);
+    if(num < 0)
+    {
+      std::cout << "\nPlease enter a number greater than 0.\n" << std::endl;
+      PrintMenu();
+      break;
+    } 
     
     menu = "Would you like to use Brute Force, 2 Opt, or 3 Opt?\n(Please enter 1 for Brute Force, 2 for 2 Opt, and 3 for 3 Opt. Default is brute force.)\n";
     std::cout << menu;
@@ -470,7 +475,7 @@ double TrojanMap::CalculatePathLength(const std::vector<std::string> &path) {
  */
 std::vector<std::string> TrojanMap::Autocomplete(std::string name) {
   std::vector<std::string> results;
-  
+  if(name == "" || name == " ") return {};
   for (auto x: data) {
     
     Node node = x.second;
@@ -724,8 +729,8 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
                                     std::vector<std::string> &location_ids) {
   std::pair<double, std::vector<std::vector<std::string>>> results;
   
-  // int16_t ALGO;
-
+  if(location_ids.empty()) return {};
+  else if (location_ids.size() == 1) return std::pair<double, std::vector<std::vector<std::string>>>(0.0, {location_ids});
   if (ALGO_TYPE == 1) {                       
   //location_ids.push_back(location_ids[0]);
   std::vector<std::string> min_path;

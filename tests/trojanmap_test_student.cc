@@ -89,14 +89,23 @@ TEST(TrojanMapTest, autocomplete) {
   TrojanMap m;
   m.CreateGraphFromCSVFile();
 
-  //test wrong input
-   std::vector<std::string> word = m.Autocomplete("ralp");
-   std::vector<std::string> w = {"Ralphs"};
+  //test specific
+  std::vector<std::string> word = m.Autocomplete("ralp");
+  std::vector<std::string> w = {"Ralphs"};
   EXPECT_EQ(w, word);
 
-   std::vector<std::string> word2 = m.Autocomplete("targ");
-   std::vector<std::string> w2 = {"Target"};
+  std::vector<std::string> word2 = m.Autocomplete("targ");
+  std::vector<std::string> w2 = {"Target"};
   EXPECT_EQ(w2, word2);
+  //test blank
+  std::vector<std::string> word3 = m.Autocomplete("");
+  EXPECT_EQ(true, word3.empty());
+  //test space
+  std::vector<std::string> word4 = m.Autocomplete(" ");
+  EXPECT_EQ(true, word4.empty());
+  //test space
+  std::vector<std::string> word5 = m.Autocomplete("098");
+  EXPECT_EQ(true, word5.empty());
 }
 
 TEST(TrojanMapTest, TSP_Test_Brute_Force) {
@@ -135,6 +144,14 @@ TEST(TrojanMapTest, TSP_Test2_Brute_Force) {
   EXPECT_EQ(flag, true);
 }
 
+TEST(TrojanMapTest, TSP_Test3_Brute_Force) {
+  TrojanMap m;
+  m.CreateGraphFromCSVFile();
+  std::vector<std::string> input; // Input location ids 
+  auto result = m.TravellingTrojan(input);
+  EXPECT_EQ(true, result.second.empty());
+  EXPECT_EQ(0, result.first);
+}
 
 TEST(TrojanMapTest,TwoOpt) {
   ALGO_TYPE = 2; //set algo type to 2opt

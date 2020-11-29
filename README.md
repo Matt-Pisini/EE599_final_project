@@ -1,9 +1,14 @@
 EE599 Final Project
 Matthew Pisini & Sina Mahbobi
 
-About The Program:
+Extra Credits: 
+1) second shortest path algorithm (A*); 
+2) 3-opt algorithm for TSP.
+
+About The Program: 
 - For CalculateShortestPath(), we employed both A* and Dijkstra's algorithm. By default, Dijkstra's algorithm is used. However, in the menu statement after you select option 3 (CalculateShortestPath), there is an option to choose A* algorithm instead.
 - TSP was implemented using a brute force method, and two opt and three opt heuristic methods. There is a global variable ALGO_TYPE for the three different types of TSP solutions. The default is 1, which means the brute force solution. It is changed to 2 for the TwoOpt test within the test function,  and it is changed to 3 for the ThreeOpt test within the test function. To change it when running it from the printMenu function, the user is prompted for which algorithm they would like to use and ALGO_TYPE flag is changed accordingly.
+- We added an if statement to PrintMenu() which ensures that the user-entered number of places to travserse is non-negative (otherwise segfault occurred). If the number of places to traverse is 1, that point is returned with distance = 0.
 
 1. High-level overview of your design (Use diagrams and pictures)
 The input to the program is a large CSV file with all points on the graph labeled with a unique ID, latitude, longitude, and a list of neighboring nodes. This file is read in and a private data structure is created in our TrojanMap class to hold all the values. The user interfaces with the program by selecting functions from a list of menu options and supplying additional input for the selected task. The following functions are included in the menu: autocomplete, which takes a string and returns any names from the data structure that begin with the specified substring; find the position, which returns the latitude and longitude of the specified node; calculate shortest path, which returns a list of coordinates that is the shortest distance between two nodes and plots the path on a map; and the traveling salesman problem, which finds the shortest path between all nodes specified.

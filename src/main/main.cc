@@ -22,7 +22,10 @@ int main() {
   // auto position = x.GetPosition("ChickfilA");
   // std::cout << position.first << " " << position.second << std::endl;
   // x.PlotPath(val);
-  
+  std::vector<std::string> input = {"4015477530"};
+  auto result = x.TravellingTrojan(input);
+  std::cout << result.second.size() << std::endl;
+
   x.PrintMenu();
   
   return 0;
