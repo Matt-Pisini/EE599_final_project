@@ -16,6 +16,18 @@ TEST(TrojanMapTest, getposition) {
   position = m.GetPosition("Coffee Bean1");
   std::pair<double, double> gt2(34.0172407,-118.2824946);
   EXPECT_EQ(position, gt2);
+    // Test The Row House
+  position = m.GetPosition("The Row House");
+  std::pair<double, double> gt3(34.0263672,-118.2785935);
+  EXPECT_EQ(position, gt3);
+    // Test blank
+  position = m.GetPosition("");
+  std::pair<double, double> gt4(-1,-1);
+  EXPECT_EQ(position, gt4);
+   // Test space
+  position = m.GetPosition(" ");
+  std::pair<double, double> gt5(-1,-1);
+  EXPECT_EQ(position, gt5);
 }
 
 TEST(TrojanMapTest, shortestpath) {
@@ -31,6 +43,45 @@ TEST(TrojanMapTest, shortestpath) {
   //test wrong input
   path = m.CalculateShortestPath("asdf", "Coffee Bean1");
   EXPECT_EQ(path.empty(), true);
+  path = m.CalculateShortestPath("Ralphs", "The Row House");
+  std::vector<std::string> expected = {"2578244375",
+"5559640911",
+"6787470571",
+"6808093910",
+"6808093913",
+"6808093919",
+"6816831441",
+"6813405269",
+"6816193784",
+"6389467806",
+"6816193783",
+"123178876",
+"6987230635",
+"6987230634",
+"6813405267",
+"6807243572",
+"2613156405",
+"2613117906",
+"123178871",
+"6813405266",
+"6813416159",
+"122814447",
+"6813416123",
+"6813416171",
+"6807536647",
+"6807320427",
+"6807536642",
+"6813416166",
+"7882624618",
+"7200139036",
+"122814440",
+"6813416163",
+"7477947679",
+"7298150111",
+"6787803640",
+"6807554573",
+"4536993726"};
+EXPECT_EQ(path, expected);
 }
 
 

@@ -163,11 +163,10 @@ void TrojanMap::PrintMenu() {
     getline(std::cin, input);
     int num = std::stoi(input);
     
-    menu = "Would you like to use Brute Force, 2 Opt, or 3 Opt?\n(Please enter 1 for Brute Force, 2 for 2 Opt, and 3 for 3 Opt. Default is Dijkstra.)\n";
+    menu = "Would you like to use Brute Force, 2 Opt, or 3 Opt?\n(Please enter 1 for Brute Force, 2 for 2 Opt, and 3 for 3 Opt. Default is brute force.)\n";
     std::cout << menu;
     std::string input3;
     getline(std::cin, input3);
-    // if (input3 == "d" || input3 == "D") SHORTEST_PATH_ALGO = 0;
     if(input3 == "1" ) ALGO_TYPE = 1;
     if(input3 == "2" ) ALGO_TYPE = 2;
     if(input3 == "3" ) ALGO_TYPE = 3;
